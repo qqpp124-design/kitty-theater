@@ -109,13 +109,13 @@ window.onYouTubeIframeAPIReady = () => {
   player = new YT.Player("player", {
     host: "https://www.youtube-nocookie.com",
     videoId: VID,
-    playerVars: { rel:0, modestbranding:1, playsinline:0, fs:1, iv_load_policy:3, controls:1, disablekb:1, origin: location.origin },
+    playerVars: { rel:0, modestbranding:1, playsinline:0, fs:1, iv_load_policy:3, cc_load_policy:0, controls:1, disablekb:1, origin: location.origin },
     events: {
       onReady: () => { ready = true;
         const t = player.getVideoData && player.getVideoData().title; if(t){ $("title").textContent = t; document.title = t; }
         if(wantPlay) player.playVideo(); },
       onStateChange: e => {
-        if (e.data === YT.PlayerState.PLAYING) hideAll();
+        if (e.data === YT.PlayerState.PLAYING) { hideAll(); noCaptions(); }
         else if (e.data === YT.PlayerState.PAUSED) show("pause");
         else if (e.data === YT.PlayerState.ENDED) { exitFs(); show("done"); }
       },
@@ -128,6 +128,7 @@ window.onYouTubeIframeAPIReady = () => {
   });
 };
 
+function noCaptions(){ try{ player.unloadModule("captions"); player.unloadModule("cc"); }catch(_){} }
 function goFs(){
   const el = document.documentElement;
   const req = el.requestFullscreen || el.webkitRequestFullscreen;
