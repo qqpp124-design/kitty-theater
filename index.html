@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>키티 극장</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+<style>
+:root{--bg:#10162A;--ink:#FFFFFF;--muted:#B9C2DA;--accent:#FF6A3D;--accent2:#FFC43D;--card:#1C2440;
+  --display:"Jua",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--display);overflow:hidden;
+  -webkit-user-select:none;user-select:none}
+#stage{position:fixed;inset:0;background:#000}
+#player,#player iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.layer{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
+  text-align:center;z-index:5}
+#start{background:var(--bg) center/cover no-repeat}
+#start::before{content:"";position:absolute;inset:0;background:rgba(16,22,42,.55)}
+#start>*{position:relative}
+.big{width:min(42vmin,220px);height:min(42vmin,220px);border-radius:50%;border:0;background:var(--accent);
+  box-shadow:0 0 0 12px rgba(255,106,61,.25),0 18px 40px rgba(0,0,0,.4);cursor:pointer;display:grid;place-items:center;
+  animation:pulse 1.8s ease-in-out infinite}
+.big svg{width:42%;height:42%;margin-left:8%}
+.big:focus-visible{outline:4px solid var(--accent2);outline-offset:6px}
+@keyframes pulse{50%{transform:scale(1.06)}}
+.title{font-size:clamp(20px,5vmin,34px);max-width:22ch;line-height:1.25;text-wrap:balance;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+#pause{background:rgba(16,22,42,.92)}
+#done{background:var(--bg)}
+.done-emoji{font-size:clamp(70px,22vmin,140px);line-height:1}
+.msg{font-size:clamp(24px,7vmin,44px)}
+.small{font-size:clamp(14px,3.6vmin,18px);color:var(--muted);font-family:system-ui,sans-serif}
+.btn{font:inherit;font-size:clamp(18px,4.5vmin,24px);border:0;border-radius:999px;padding:14px 28px;background:var(--card);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--accent)}
+#err{background:var(--bg)}
+/* 어른용: PC에서 열면 QR 보여주기 */
+#adult{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:6;
+  background:#fff;color:#1D2740;border-radius:14px;padding:12px;font-family:system-ui,sans-serif;font-size:12px;width:180px;text-align:center}
+#adult canvas{width:156px;height:156px;display:block;margin:0 auto 6px}
+@media (prefers-reduced-motion:reduce){.big{animation:none}}
+</style>
+</head>
+<body>
+<div id="stage"><div id="player"></div></div>
+
+<div class="layer" id="start">
+  <button class="big" id="playBtn" aria-label="영상 보기">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.5.87l14-8.5a1 1 0 0 0 0-1.74l-14-8.5A1 1 0 0 0 5 3.5z" fill="#fff"/></svg>
+  </button>
+  <div class="title" id="title">눌러서 보기</div>
+</div>
+
+<div class="layer" id="pause" hidden>
+  <button class="big" id="resumeBtn" aria-label="계속 보기">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.5.87l14-8.5a1 1 0 0 0 0-1.74l-14-8.5A1 1 0 0 0 5 3.5z" fill="#fff"/></svg>
+  </button>
+  <div class="msg">잠깐 멈췄어요</div>
+</div>
+
+<div class="layer" id="done" hidden>
+  <div class="done-emoji">🌟</div>
+  <div class="msg">끝! 잘 봤어요</div>
+  <div class="small">다른 카드를 찍으면 새 영상을 볼 수 있어요</div>
+  <button class="btn" id="againBtn">한 번 더 보기</button>
+</div>
+
+<div class="layer" id="err" hidden>
+  <div class="msg">영상을 열 수 없어요</div>
+  <div class="small" id="errMsg"></div>
+</div>
+
+<div id="adult" hidden>
+  <canvas id="qr" width="156" height="156"></canvas>
+  <div>폰 카메라로 찍어 테스트</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+const DEFAULT_ID = "HZJndVvTm4I";
+const $ = id => document.getElementById(id);
+function show(id){["start","pause","done","err"].forEach(k=>$(k).hidden = k!==id);}
+function hideAll(){["start","pause","done","err"].forEach(k=>$(k).hidden = true);}
+
+function parseId(){
+  const p = new URLSearchParams(location.search);
+  let v = p.get("y") || p.get("v") || "";
+  const u = p.get("u");
+  if(!v && u){ const m = u.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/); if(m) v = m[1]; }
+  return /^[\w-]{11}$/.test(v) ? v : DEFAULT_ID;
+}
+const VID = parseId();
+$("start").style.backgroundImage = `url(https://i.ytimg.com/vi/${VID}/hqdefault.jpg)`;
+
+/* 데스크톱에서 열면 이 주소의 QR을 보여줘 폰으로 바로 테스트 */
+if (matchMedia("(pointer:fine)").matches && location.protocol.startsWith("http") && window.qrcode){
+  const q = qrcode(0,"M"); q.addData(location.href); q.make();
+  const n = q.getModuleCount(), c = $("qr").getContext("2d"), s = 156/(n+4);
+  c.fillStyle="#fff"; c.fillRect(0,0,156,156); c.fillStyle="#000";
+  for(let r=0;r<n;r++)for(let k=0;k<n;k++) if(q.isDark(r,k)) c.fillRect(Math.floor((k+2)*s),Math.floor((r+2)*s),Math.ceil(s),Math.ceil(s));
+  $("adult").hidden = false;
+}
+
+/* 유튜브 플레이어 */
+let player, ready = false, wantPlay = false;
+const tag = document.createElement("script"); tag.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(tag);
+window.onYouTubeIframeAPIReady = () => {
+  player = new YT.Player("player", {
+    host: "https://www.youtube-nocookie.com",
+    videoId: VID,
+    playerVars: { rel:0, modestbranding:1, playsinline:0, fs:1, iv_load_policy:3, controls:1, disablekb:1, origin: location.origin },
+    events: {
+      onReady: () => { ready = true;
+        const t = player.getVideoData && player.getVideoData().title; if(t){ $("title").textContent = t; document.title = t; }
+        if(wantPlay) player.playVideo(); },
+      onStateChange: e => {
+        if (e.data === YT.PlayerState.PLAYING) hideAll();
+        else if (e.data === YT.PlayerState.PAUSED) show("pause");
+        else if (e.data === YT.PlayerState.ENDED) { exitFs(); show("done"); }
+      },
+      onError: e => {
+        const m = {2:"영상 주소가 잘못됐어요.",5:"이 기기에서 재생할 수 없는 영상이에요.",100:"삭제되었거나 비공개 영상이에요.",101:"채널이 다른 사이트에서의 재생을 막아 둔 영상이에요.",150:"채널이 다른 사이트에서의 재생을 막아 둔 영상이에요.",153:"이 페이지를 웹 주소(https)로 열어야 재생돼요."};
+        $("errMsg").textContent = (m[e.data] || "잠시 후 다시 찍어 주세요.") + " (코드 " + e.data + ")";
+        show("err");
+      }
+    }
+  });
+};
+
+function goFs(){
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (req) { try { const p = req.call(el); if(p && p.then) p.then(()=>{ try{ screen.orientation.lock("landscape").catch(()=>{}); }catch(_){} }).catch(()=>{}); } catch(_){} }
+}
+function exitFs(){
+  const ex = document.exitFullscreen || document.webkitExitFullscreen;
+  if ((document.fullscreenElement || document.webkitFullscreenElement) && ex) { try{ ex.call(document); }catch(_){} }
+}
+function start(){ goFs(); hideAll(); if(ready) player.playVideo(); else wantPlay = true; }
+$("playBtn").onclick = start;
+$("resumeBtn").onclick = start;
+$("againBtn").onclick = () => { if(ready){ player.seekTo(0); } start(); };
+</script>
+</body>
+</html>
