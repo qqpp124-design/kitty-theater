@@ -35,6 +35,11 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 .btn{font:inherit;font-size:clamp(18px,4.5vmin,24px);border:0;border-radius:999px;padding:14px 28px;background:var(--card);color:var(--ink);cursor:pointer}
 .btn.primary{background:var(--accent)}
 #err{background:var(--bg)}
+#setup{background:var(--bg);z-index:8}
+.opts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.opt{font:inherit;font-size:20px;border:2px solid #39456A;border-radius:14px;padding:12px 20px;background:var(--card);color:var(--ink);cursor:pointer}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:#3A2A2A}
+.ccbadge{position:fixed;left:max(14px,env(safe-area-inset-left));top:max(14px,env(safe-area-inset-top));z-index:6;font-family:system-ui,sans-serif;font-size:12px;color:var(--muted);background:rgba(0,0,0,.35);padding:4px 10px;border-radius:999px}
 /* 어른용: PC에서 열면 QR 보여주기 */
 #adult{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:6;
   background:#fff;color:#1D2740;border-radius:14px;padding:12px;font-family:system-ui,sans-serif;font-size:12px;width:180px;text-align:center}
@@ -49,7 +54,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
   <button class="big" id="playBtn" aria-label="영상 보기">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.5.87l14-8.5a1 1 0 0 0 0-1.74l-14-8.5A1 1 0 0 0 5 3.5z" fill="#fff"/></svg>
   </button>
-  <div class="title" id="title">눌러서 보기</div>
+  <div class="title" id="title" style="-webkit-touch-callout:none">눌러서 보기</div>
+  <div class="ccbadge" id="ccBadge" hidden></div>
 </div>
 
 <div class="layer" id="pause" hidden>
@@ -64,6 +70,17 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
   <div class="msg">끝! 잘 봤어요</div>
   <div class="small">다른 카드를 찍으면 새 영상을 볼 수 있어요</div>
   <button class="btn" id="againBtn">한 번 더 보기</button>
+</div>
+
+<div class="layer" id="setup" hidden>
+  <div class="msg">자막 설정 (이 기기)</div>
+  <div class="small">카드 QR 주소에 cc가 붙어 있으면 그 카드는 카드 설정을 따라요</div>
+  <div class="opts" id="ccOpts">
+    <button class="opt" data-cc="off">자막 끄기</button>
+    <button class="opt" data-cc="ko">한국어 자막</button>
+    <button class="opt" data-cc="en">영어 자막</button>
+  </div>
+  <button class="btn primary" id="setupDone">저장하고 닫기</button>
 </div>
 
 <div class="layer" id="err" hidden>
@@ -91,6 +108,13 @@ function parseId(){
   return /^[\w-]{11}$/.test(v) ? v : DEFAULT_ID;
 }
 const VID = parseId();
+const PARAMS = new URLSearchParams(location.search);
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(_){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(_){} }
+function normCC(v){ if(v==null) return null; v=String(v).toLowerCase(); if(["0","off","no","false"].includes(v)) return "off"; if(["1","on","yes","true"].includes(v)) return "ko"; return /^[a-z]{2}(-[a-z]{2})?$/.test(v) ? v : null; }
+let CC = normCC(PARAMS.get("cc")) || normCC(lsGet("kt.cc")) || "off";
+function showBadge(){ const b=$("ccBadge"); b.textContent = CC==="off" ? "" : "자막: " + ({ko:"한국어",en:"영어"}[CC]||CC); b.hidden = CC==="off"; }
+showBadge();
 $("start").style.backgroundImage = `url(https://i.ytimg.com/vi/${VID}/hqdefault.jpg)`;
 
 /* 데스크톱에서 열면 이 주소의 QR을 보여줘 폰으로 바로 테스트 */
@@ -109,13 +133,13 @@ window.onYouTubeIframeAPIReady = () => {
   player = new YT.Player("player", {
     host: "https://www.youtube-nocookie.com",
     videoId: VID,
-    playerVars: { rel:0, modestbranding:1, playsinline:0, fs:1, iv_load_policy:3, cc_load_policy:0, controls:1, disablekb:1, origin: location.origin },
+    playerVars: { rel:0, modestbranding:1, playsinline:0, fs:1, iv_load_policy:3, cc_load_policy:(CC==="off"?0:1), cc_lang_pref:(CC==="off"?"ko":CC), controls:1, disablekb:1, origin: location.origin },
     events: {
       onReady: () => { ready = true;
         const t = player.getVideoData && player.getVideoData().title; if(t){ $("title").textContent = t; document.title = t; }
         if(wantPlay) player.playVideo(); },
       onStateChange: e => {
-        if (e.data === YT.PlayerState.PLAYING) { hideAll(); noCaptions(); }
+        if (e.data === YT.PlayerState.PLAYING) { hideAll(); applyCaptions(); }
         else if (e.data === YT.PlayerState.PAUSED) show("pause");
         else if (e.data === YT.PlayerState.ENDED) { exitFs(); show("done"); }
       },
@@ -129,6 +153,19 @@ window.onYouTubeIframeAPIReady = () => {
 };
 
 function noCaptions(){ try{ player.unloadModule("captions"); player.unloadModule("cc"); }catch(_){} }
+function applyCaptions(){
+  if(CC==="off") return noCaptions();
+  try{ player.loadModule("captions"); player.setOption("captions","track",{languageCode:CC}); }catch(_){}
+}
+/* 어른용 설정: 주소에 ?setup 을 붙이거나, 시작 화면 제목을 3초 꾹 누르기 */
+function openSetup(){ document.querySelectorAll("#ccOpts .opt").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.cc===(normCC(lsGet("kt.cc"))||"off")))); show("setup"); }
+document.querySelectorAll("#ccOpts .opt").forEach(b=>b.onclick=()=>{ document.querySelectorAll("#ccOpts .opt").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); lsSet("kt.cc", b.dataset.cc); });
+$("setupDone").onclick=()=>{ if(!normCC(PARAMS.get("cc"))) CC = normCC(lsGet("kt.cc")) || "off"; showBadge(); show("start"); };
+let pressT; const tt=$("title");
+tt.addEventListener("pointerdown",()=>{ pressT=setTimeout(openSetup,3000); });
+["pointerup","pointerleave","pointercancel"].forEach(ev=>tt.addEventListener(ev,()=>clearTimeout(pressT)));
+tt.addEventListener("contextmenu",e=>e.preventDefault());
+if(PARAMS.has("setup")) openSetup();
 function goFs(){
   const el = document.documentElement;
   const req = el.requestFullscreen || el.webkitRequestFullscreen;
