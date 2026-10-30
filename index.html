@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>키티 QR 영상 카드 메이커 (Light Mode Edition)</title>
+    <title>키티 QR 영상 카드 메이커 & 유튜브 다운로더</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts (Jua, Noto Sans KR) -->
@@ -42,7 +42,7 @@
     </script>
 
     <style>
-        /* Card & Print Physical Dimensions (54mm x 85.6mm) */
+        /* Card & Print Physical Dimensions (54mm x 85.6mm - Standard Yoto / Credit Card Size) */
         :root {
             --card-width: 54mm;
             --card-height: 85.6mm;
@@ -109,7 +109,7 @@
             border-radius: 50%;
         }
 
-        /* Print Settings for A4 Grid Layout */
+        /* Print Settings for A4 Grid Layout (3x3 Cards per Page) */
         @media print {
             @page {
                 size: A4 portrait;
@@ -208,7 +208,7 @@
     </div>
 
     <!-- Header Navigation (No Print) -->
-    <header class="no-print bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200 px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm">
+    <header class="no-print bg-white/95 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200 px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3">
             <div class="flex items-center justify-between w-full sm:w-auto gap-2">
                 <div class="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -217,15 +217,14 @@
                     </div>
                     <div class="min-w-0 flex-1">
                         <h1 class="font-jua text-base sm:text-xl md:text-2xl text-slate-900 leading-tight whitespace-nowrap truncate flex items-center gap-1.5">
-                            키티 QR 영상 카드 메이커 
-                            <span class="text-[10px] sm:text-xs font-sans px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold border border-slate-200 shrink-0">Light</span>
+                            키티 QR 영상 카드 메이커 & 다운로더
+                            <span class="text-[10px] sm:text-xs font-sans px-2 py-0.5 rounded-full bg-black text-white font-semibold shrink-0">통합판</span>
                         </h1>
-                        <p class="text-[10px] sm:text-xs text-slate-500 truncate hidden xs:block">유튜브 제목 자동 정제 · 구글 드라이브 QR 카드 메이커</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Global Action Buttons (모바일 전용: 1행 3열 수평 배치) -->
+            <!-- Global Action Buttons (모바일 1행 3열 수평 배치) -->
             <div class="grid grid-cols-3 gap-1.5 w-full sm:w-auto sm:flex sm:items-center sm:gap-2 shrink-0">
                 <button onclick="loadSampleData()" class="px-2 py-2 sm:px-3.5 sm:py-2 text-[11px] sm:text-xs font-semibold rounded-xl bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-200 transition flex items-center justify-center gap-1 whitespace-nowrap">
                     <i class="fa-solid fa-wand-magic-sparkles text-slate-500 text-[10px] sm:text-xs"></i> <span>샘플 추가</span>
@@ -243,10 +242,62 @@
     <!-- Main Content Grid -->
     <main class="max-w-7xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <!-- Left Sidebar: Controls & Card Form (No Print) -->
+        <!-- Left Sidebar: Controls, Downloader & Card Form (No Print) -->
         <section class="no-print lg:col-span-5 space-y-6">
             
-            <!-- Global Card Config Panel -->
+            <!-- SECTION 1: 구글 드라이브 다운로더 연동 패널 -->
+            <div class="bg-white rounded-3xl p-5 border-2 border-black space-y-4 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-jua text-lg text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-down text-black"></i> 🎬 1단계: 영상 + 썸네일 드라이브 저장
+                    </h2>
+                    <button onclick="openGithubTokenModal()" class="text-xs font-bold text-slate-600 hover:text-black transition flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200">
+                        <i class="fa-solid fa-key text-amber-500"></i> <span>토큰 발급 가이드</span>
+                    </button>
+                </div>
+
+                <!-- GitHub Personal Access Token (PAT) Setting -->
+                <div class="space-y-1.5 text-xs">
+                    <div class="flex justify-between items-center">
+                        <label class="block font-semibold text-slate-700">GitHub 토큰 (Personal Access Token)</label>
+                        <span class="text-[10px] text-slate-400">최초 1회 저장</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="password" id="githubPatToken" placeholder="ghp_... 또는 github_pat_..." 
+                               class="flex-1 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black font-mono text-slate-800">
+                        <button onclick="saveGithubToken()" class="px-3 py-2 bg-black text-white rounded-xl font-bold hover:bg-slate-800 transition shrink-0">
+                            저장
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Series & YouTube Link Form for Downloader -->
+                <div class="space-y-2 text-xs pt-2 border-t border-slate-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">시리즈 이름</label>
+                            <input type="text" id="quickSeriesName" placeholder="예: 호기심 딱지" 
+                                   class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black text-slate-800">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">유튜브 링크</label>
+                            <input type="text" id="quickYoutubeUrl" placeholder="https://youtu.be/..." 
+                                   class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black text-slate-800">
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-1">
+                        <button onclick="triggerGithubWorkflow()" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition flex items-center justify-center gap-1.5 shadow-sm text-xs active:scale-98">
+                            <i class="fa-solid fa-paper-plane"></i> <span>영상 + 썸네일 다운로드 실행</span>
+                        </button>
+                        <a href="https://drive.google.com/drive/my-drive" target="_blank" class="px-3 py-2.5 bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-200 font-bold rounded-xl transition flex items-center gap-1 shrink-0 text-xs" title="구글 드라이브 열기">
+                            <i class="fa-solid fa-folder-open text-amber-500"></i> 드라이브
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: Global Card Config Panel -->
             <div class="bg-white rounded-3xl p-5 border border-slate-200 space-y-4 shadow-sm">
                 <h2 class="font-jua text-lg text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-sliders text-slate-500"></i> 카드 인쇄 및 웹 설정
@@ -297,7 +348,7 @@
             <div class="bg-white rounded-3xl p-5 border border-slate-200 space-y-4 shadow-sm">
                 <div class="flex items-center justify-between">
                     <h2 class="font-jua text-lg text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-plus-circle text-slate-500"></i> 새 카드 추가
+                        <i class="fa-solid fa-plus-circle text-slate-500"></i> 🎴 2단계: 새 카드 추가
                     </h2>
                     <span id="cardCountBadge" class="text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 font-bold border border-slate-200">0장 등록됨</span>
                 </div>
@@ -337,7 +388,7 @@
                     <!-- Thumbnail Image -->
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <label class="font-semibold text-slate-700">썸네일 이미지 <span class="text-[10px] font-normal text-slate-400">(선택 - 미입력 시 드라이브/유튜브 자동)</span></label>
+                            <label class="font-semibold text-slate-700">썸네일 이미지 <span class="text-[10px] font-normal text-slate-400">(선택 - 미입력 시 자동)</span></label>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
@@ -383,18 +434,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Informational Tip -->
-            <div class="bg-white rounded-3xl p-4 border border-slate-200 text-xs text-slate-600 space-y-1.5 shadow-sm">
-                <p class="font-bold text-slate-900 flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle-info text-slate-500"></i> 라이트 모드 인쇄 가이드
-                </p>
-                <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-500">
-                    <li>인쇄 시 <b>A4 용지 실제 크기(100%)</b>로 지정해 주세요.</li>
-                    <li>모든 QR 코드는 21mm 선명한 백색 규격 박스로 인쇄되어 카메라 스캔율이 높습니다.</li>
-                    <li>선택한 세이펜 스티커 가이드(10/12/15mm) 동그라미에 스티커를 부착하시면 됩니다.</li>
-                </ul>
-            </div>
         </section>
 
         <!-- Right Side: A4 Page Layout & Print Preview -->
@@ -411,10 +450,28 @@
                 </div>
             </div>
 
-            <!-- Scrollable Preview Viewport -->
-            <div class="no-print overflow-x-auto pb-6">
-                <div id="a4Container" class="flex flex-col items-center">
-                    <!-- Rendered A4 Pages -->
+            <!-- Interactive Viewport for A4 Preview with Pinch-to-Zoom & Pan -->
+            <div class="no-print relative">
+                <!-- Floating Zoom Controls -->
+                <div class="absolute top-3 right-3 z-30 flex items-center gap-1 bg-white/95 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200 shadow-lg text-xs">
+                    <button onclick="zoomStep(0.15)" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 font-bold flex items-center justify-center transition" title="확대">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                    <button onclick="zoomStep(-0.15)" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 font-bold flex items-center justify-center transition" title="축소">
+                        <i class="fa-solid fa-minus"></i>
+                    </button>
+                    <button onclick="resetZoomToFit()" class="px-2.5 py-1.5 rounded-xl bg-black text-white font-bold text-[11px] hover:bg-slate-800 active:scale-95 transition flex items-center gap-1 shadow-sm" title="화면에 맞추기">
+                        <i class="fa-solid fa-expand"></i> <span>맞춤</span>
+                    </button>
+                </div>
+
+                <!-- Touch Viewport Container -->
+                <div id="zoomViewport" class="relative w-full overflow-hidden rounded-3xl bg-slate-100/90 border border-slate-200 min-h-[480px] flex justify-center items-start p-2 sm:p-4 touch-none select-none cursor-grab">
+                    <div id="zoomTransformTarget" class="origin-top transition-transform duration-75 ease-out flex flex-col items-center">
+                        <div id="a4Container" class="flex flex-col items-center gap-8">
+                            <!-- Rendered A4 Pages -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -437,7 +494,7 @@
             </div>
             
             <p class="text-xs text-slate-500">
-                한 줄에 하나씩 <b>시리즈 | 긴제목또는짧은제목 | 구글드라이브주소(또는ID/유튜브) | 썸네일URL</b> 형식으로 입력하세요.
+                한 줄에 하나씩 <b>시리즈 | 제목 | 구글드라이브주소(또는ID/유튜브) | 썸네일URL</b> 형식으로 입력하세요.
             </p>
 
             <textarea id="batchInputText" rows="7" placeholder="호기심 딱지 | [EBS] 호기심 딱지 S1 - 01화 최고의 달걀 HD 풀버전 | 1A2B3C4D5E
@@ -463,34 +520,32 @@
                 </button>
             </div>
 
-            <input type="hidden" id="editCardId">
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-semibold text-slate-700 mb-1">시리즈 이름</label>
-                    <input type="text" id="editSeries" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black text-slate-900">
-                </div>
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="font-semibold text-slate-700">카드 제목</label>
-                        <button type="button" onclick="triggerEditTitleClean()" class="text-[10px] font-bold text-white bg-black hover:bg-slate-800 px-2 py-0.5 rounded-lg transition">
-                            제목 자동 정제 ✨
-                        </button>
-                    </div>
-                    <input type="text" id="editTitle" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black font-medium text-slate-900">
-                </div>
-                <div>
-                    <label class="block font-semibold text-slate-700 mb-1">구글 드라이브 ID / 재생 ID</label>
-                    <input type="text" id="editDriveId" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black font-mono text-slate-800">
-                </div>
-                <div>
-                    <label class="block font-semibold text-slate-700 mb-1">썸네일 URL</label>
-                    <input type="url" id="editThumb" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black text-slate-800">
-                </div>
+    <!-- GitHub PAT Token Guide Modal (No Print) -->
+    <div id="githubTokenModal" class="no-print fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+            <div class="flex justify-between items-center">
+                <h3 class="font-jua text-xl text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-key text-amber-500"></i> GitHub 토큰 (PAT) 발급 방법
+                </h3>
+                <button onclick="closeGithubTokenModal()" class="text-slate-400 hover:text-slate-700">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
             </div>
+            
+            <p class="text-xs text-slate-600 leading-relaxed">
+                웹페이지에서 버튼 하나로 GitHub Actions를 즉시 실행하기 위해 **Personal Access Token**이 필요합니다. (최초 1회 설정)
+            </p>
 
-            <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeEditModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 hover:bg-slate-200 transition">취소</button>
-                <button onclick="saveCardEdit()" class="px-5 py-2 rounded-xl bg-black text-white font-bold text-xs hover:bg-slate-800 shadow-md transition">저장하기</button>
+            <ol class="list-decimal list-inside text-xs text-slate-700 space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <li><a href="https://github.com/settings/tokens/new" target="_blank" class="text-sky-600 font-bold underline">GitHub 토큰 발급 페이지 열기 ↗</a>에 접속합니다.</li>
+                <li><b>Note</b>에 <code class="bg-slate-200 px-1 rounded">Kitty Theater</code> 입력</li>
+                <li><b>Expiration</b>을 <code class="bg-slate-200 px-1 rounded">No expiration</code> 설정 (또는 원하는 기간)</li>
+                <li><b>Select scopes</b> 항목에서 <b class="text-emerald-700">workflow</b> 및 <b class="text-emerald-700">repo</b> 체크박스 선택</li>
+                <li>맨 아래 <b class="bg-emerald-600 text-white px-2 py-0.5 rounded">Generate token</b> 클릭 후 생성된 토큰(<code class="bg-slate-200 px-1 rounded">ghp_...</code>)을 복사하여 위 입력창에 붙여넣기 후 <b>[저장]</b> 누르기!</li>
+            </ol>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="closeGithubTokenModal()" class="px-5 py-2 rounded-xl bg-black text-white font-bold text-xs hover:bg-slate-800 transition">닫기</button>
             </div>
         </div>
     </div>
@@ -586,6 +641,74 @@
             cancelBtn.addEventListener('click', handleCancel);
         }
 
+        // --- GITHUB ACTIONS DIRECT API ENGINE ---
+        function openGithubTokenModal() {
+            document.getElementById('githubTokenModal').classList.remove('hidden');
+        }
+
+        function closeGithubTokenModal() {
+            document.getElementById('githubTokenModal').classList.add('hidden');
+        }
+
+        function saveGithubToken() {
+            const input = document.getElementById('githubPatToken');
+            const val = input.value.trim();
+            if (!val) {
+                showToast('GitHub 토큰을 입력해 주세요.', 'warning');
+                return;
+            }
+            localStorage.setItem('github_pat_token', val);
+            showToast('GitHub 토큰이 안전하게 저장되었습니다.', 'success');
+        }
+
+        async function triggerGithubWorkflow() {
+            const token = localStorage.getItem('github_pat_token') || document.getElementById('githubPatToken').value.trim();
+            const youtubeUrl = document.getElementById('quickYoutubeUrl').value.trim();
+            const seriesName = document.getElementById('quickSeriesName').value.trim();
+
+            if (!token) {
+                showToast('GitHub 토큰(PAT)을 먼저 입력하고 저장해 주세요.', 'warning');
+                document.getElementById('githubPatToken').focus();
+                return;
+            }
+
+            if (!youtubeUrl) {
+                showToast('다운로드할 유튜브 링크를 입력해 주세요.', 'warning');
+                document.getElementById('quickYoutubeUrl').focus();
+                return;
+            }
+
+            showToast('🚀 GitHub Actions에 다운로드 요청 전송 중...', 'info');
+
+            try {
+                const response = await fetch('https://api.github.com/repos/qqpp124-design/kitty-theater/actions/workflows/download.yml/dispatches', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/vnd.github+json',
+                        'Authorization': `Bearer ${token}`,
+                        'X-GitHub-Api-Version': '2022-11-28',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ref: 'main',
+                        inputs: {
+                            youtube_url: youtubeUrl,
+                            series_name: seriesName
+                        }
+                    })
+                });
+
+                if (response.status === 204 || response.ok) {
+                    showToast('✅ GitHub Actions 실행 요청 성공! 1~2분 후 구글 드라이브를 확인해 주세요.', 'success');
+                } else {
+                    const errData = await response.json().catch(() => ({}));
+                    showToast(`❌ 실행 실패: ${errData.message || '토큰 권한(workflow) 또는 저장소명을 확인해 주세요.'}`, 'warning');
+                }
+            } catch (err) {
+                showToast(`❌ 네트워크 오류: ${err.message}`, 'warning');
+            }
+        }
+
         // --- TITLE CLEANING ENGINE ---
         function cleanTitle(raw) {
             if (!raw) return '';
@@ -665,8 +788,135 @@
         // Initialize Application
         window.addEventListener('DOMContentLoaded', () => {
             document.documentElement.style.setProperty('--saypen-size', saypenSize);
+            
+            // Load GitHub PAT Token
+            const savedGithubToken = localStorage.getItem('github_pat_token');
+            if (savedGithubToken) {
+                document.getElementById('githubPatToken').value = savedGithubToken;
+            }
+
+            initZoomAndPan();
             renderAllPages();
         });
+
+        // --- ZOOM & TOUCH PAN ENGINE FOR A4 PREVIEW ---
+        let currentScale = 1.0;
+        let baseFitScale = 1.0;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let initialPinchDist = 0;
+        let initialScale = 1.0;
+
+        function autoFitA4() {
+            const viewport = document.getElementById('zoomViewport');
+            const transformTarget = document.getElementById('zoomTransformTarget');
+            if (!viewport || !transformTarget) return;
+
+            const viewportWidth = viewport.clientWidth - 16;
+            const a4PxWidth = 794; // 210mm in pixels at 96dpi
+
+            if (viewportWidth > 0) {
+                baseFitScale = Math.min(1.0, viewportWidth / a4PxWidth);
+                currentScale = baseFitScale;
+                panX = 0;
+                panY = 0;
+                applyTransform();
+            }
+        }
+
+        function applyTransform() {
+            const target = document.getElementById('zoomTransformTarget');
+            if (target) {
+                target.style.transform = `translate(${panX}px, ${panY}px) scale(${currentScale})`;
+            }
+        }
+
+        function zoomStep(delta) {
+            currentScale = Math.min(Math.max(0.25, currentScale + delta), 3.0);
+            applyTransform();
+        }
+
+        function resetZoomToFit() {
+            autoFitA4();
+            showToast('A4 전체 화면 맞춤 적용됨', 'info');
+        }
+
+        function initZoomAndPan() {
+            const viewport = document.getElementById('zoomViewport');
+            if (!viewport) return;
+
+            // Mouse drag panning
+            viewport.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX - panX;
+                startY = e.clientY - panY;
+                viewport.classList.replace('cursor-grab', 'cursor-grabbing');
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                panX = e.clientX - startX;
+                panY = e.clientY - startY;
+                applyTransform();
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    viewport.classList.replace('cursor-grabbing', 'cursor-grab');
+                }
+            });
+
+            // Touch events (Pinch zoom & 1-finger drag)
+            viewport.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    startX = e.touches[0].clientX - panX;
+                    startY = e.touches[0].clientY - panY;
+                } else if (e.touches.length === 2) {
+                    isDragging = false;
+                    initialPinchDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    initialScale = currentScale;
+                }
+            }, { passive: false });
+
+            viewport.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && isDragging) {
+                    e.preventDefault();
+                    panX = e.touches[0].clientX - startX;
+                    panY = e.touches[0].clientY - startY;
+                    applyTransform();
+                } else if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const currentDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    if (initialPinchDist > 0) {
+                        const scaleFactor = currentDist / initialPinchDist;
+                        currentScale = Math.min(Math.max(0.25, initialScale * scaleFactor), 3.0);
+                        applyTransform();
+                    }
+                }
+            }, { passive: false });
+
+            viewport.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2) {
+                    initialPinchDist = 0;
+                }
+                if (e.touches.length === 0) {
+                    isDragging = false;
+                }
+            });
+
+            window.addEventListener('resize', autoFitA4);
+        }
 
         // Extract File ID or YouTube ID
         function extractDriveId(input) {
@@ -1001,7 +1251,10 @@
                 printOnlyContainer.appendChild(printPageEl);
             }
 
-            setTimeout(generateQRCodes, 50);
+            setTimeout(() => {
+                generateQRCodes();
+                autoFitA4();
+            }, 50);
         }
 
         // Single Card Element Builder
