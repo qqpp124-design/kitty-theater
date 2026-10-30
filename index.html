@@ -42,7 +42,7 @@
     </script>
 
     <style>
-        /* Card & Print Physical Dimensions (54mm x 85.6mm - Standard Yoto / Credit Card Size) */
+        /* Card & Print Physical Dimensions (54mm x 85.6mm - Standard Credit Card Size) */
         :root {
             --card-width: 54mm;
             --card-height: 85.6mm;
@@ -59,7 +59,7 @@
             font-family: 'Jua', sans-serif;
         }
 
-        /* Physical Card CSS Rules (Monochrome High Contrast Light Mode) */
+        /* Physical Card CSS Rules */
         .yoto-card {
             width: var(--card-width);
             height: var(--card-height);
@@ -135,7 +135,7 @@
                 page-break-after: always;
                 page-break-inside: avoid;
                 box-sizing: border-box;
-                padding: 20.1mm 24mm; /* Centered 3x3 layout on A4 */
+                padding: 20.1mm 24mm;
                 display: grid;
                 grid-template-columns: repeat(3, 54mm);
                 grid-template-rows: repeat(3, 85.6mm);
@@ -207,6 +207,36 @@
         </div>
     </div>
 
+    <!-- GitHub Token Modal (No Print) -->
+    <div id="githubTokenModal" class="no-print fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+            <div class="flex justify-between items-center">
+                <h3 class="font-jua text-xl text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-key text-amber-500"></i> GitHub 토큰 발급 방법
+                </h3>
+                <button onclick="closeGithubTokenModal()" class="text-slate-400 hover:text-slate-700">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="text-xs text-slate-600 space-y-2.5 leading-relaxed">
+                <p class="font-bold text-slate-900">GitHub 접속 없이 웹사이트에서 바로 다운로드를 실행하기 위한 1회성 토큰 설정입니다.</p>
+                <ol class="list-decimal list-inside space-y-1.5 font-medium">
+                    <li><a href="https://github.com/settings/tokens/new" target="_blank" class="text-emerald-600 underline font-bold">GitHub 토큰 생성 페이지</a>로 이동합니다.</li>
+                    <li><b>Note</b>에 <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">Kitty Theater</code> 입력</li>
+                    <li><b>Expiration</b>을 <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">No expiration</code>으로 변경 (영구 사용)</li>
+                    <li><b>Select scopes</b> 항목에서 <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">repo</code>와 <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">workflow</code> 체크</li>
+                    <li>맨 아래 초록색 <b>Generate token</b> 버튼 클릭</li>
+                    <li>생성된 <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">ghp_...</code> 토큰을 복사하여 1단계 입력창에 붙여넣고 [저장] 누르기</li>
+                </ol>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="closeGithubTokenModal()" class="px-5 py-2 rounded-xl bg-black text-white font-bold text-xs hover:bg-slate-800 shadow-md transition">확인했습니다</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Header Navigation (No Print) -->
     <header class="no-print bg-white/95 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200 px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3">
@@ -224,7 +254,7 @@
                 </div>
             </div>
 
-            <!-- Global Action Buttons (모바일 1행 3열 수평 배치) -->
+            <!-- Global Action Buttons -->
             <div class="grid grid-cols-3 gap-1.5 w-full sm:w-auto sm:flex sm:items-center sm:gap-2 shrink-0">
                 <button onclick="loadSampleData()" class="px-2 py-2 sm:px-3.5 sm:py-2 text-[11px] sm:text-xs font-semibold rounded-xl bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-200 transition flex items-center justify-center gap-1 whitespace-nowrap">
                     <i class="fa-solid fa-wand-magic-sparkles text-slate-500 text-[10px] sm:text-xs"></i> <span>샘플 추가</span>
@@ -385,6 +415,13 @@
                                class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black font-medium text-slate-900">
                     </div>
 
+                    <!-- Video Duration -->
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">재생 시간 <span class="text-[10px] font-normal text-slate-400">(선택 - 예: 05:20)</span></label>
+                        <input type="text" id="inputDuration" placeholder="예: 05:20 또는 10분"
+                               class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black font-mono text-slate-800">
+                    </div>
+
                     <!-- Thumbnail Image -->
                     <div>
                         <div class="flex justify-between items-center mb-1">
@@ -494,11 +531,11 @@
             </div>
             
             <p class="text-xs text-slate-500">
-                한 줄에 하나씩 <b>시리즈 | 제목 | 구글드라이브주소(또는ID/유튜브) | 썸네일URL</b> 형식으로 입력하세요.
+                한 줄에 하나씩 <b>시리즈 | 제목 | 구글드라이브주소(또는ID/유튜브) | 썸네일URL | 재생시간</b> 형식으로 입력하세요.
             </p>
 
-            <textarea id="batchInputText" rows="7" placeholder="호기심 딱지 | [EBS] 호기심 딱지 S1 - 01화 최고의 달걀 HD 풀버전 | 1A2B3C4D5E
-넘버블럭스 | Numberblocks Season 1 Ep 1 - One Full Episode | https://youtu.be/..."
+            <textarea id="batchInputText" rows="7" placeholder="호기심 딱지 | [EBS] 호기심 딱지 S1 - 01화 최고의 달걀 HD | 1A2B3C4D5E | | 05:20
+넘버블럭스 | Numberblocks Season 1 Ep 1 - One Full Episode | https://youtu.be/... | | 03:45"
                       class="w-full p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 focus:outline-none focus:border-black leading-relaxed"></textarea>
 
             <div class="flex justify-end gap-2 pt-2">
@@ -520,32 +557,36 @@
                 </button>
             </div>
 
-    <!-- GitHub PAT Token Guide Modal (No Print) -->
-    <div id="githubTokenModal" class="no-print fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200">
-            <div class="flex justify-between items-center">
-                <h3 class="font-jua text-xl text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-key text-amber-500"></i> GitHub 토큰 (PAT) 발급 방법
-                </h3>
-                <button onclick="closeGithubTokenModal()" class="text-slate-400 hover:text-slate-700">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+            <div class="space-y-3 text-xs">
+                <input type="hidden" id="editCardId">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">시리즈 이름</label>
+                    <input type="text" id="editSeries" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black text-slate-900">
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="font-semibold text-slate-700">영상 제목</label>
+                        <button type="button" onclick="triggerEditTitleClean()" class="text-[10px] font-bold text-white bg-black hover:bg-slate-800 px-2 py-0.5 rounded-lg transition">제목 정제 ✨</button>
+                    </div>
+                    <input type="text" id="editTitle" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black text-slate-900">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">재생 시간</label>
+                    <input type="text" id="editDuration" placeholder="예: 05:20" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black text-slate-900 font-mono">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">구글 드라이브 ID / 유튜브 링크</label>
+                    <input type="text" id="editDriveId" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black font-mono text-slate-900">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">썸네일 URL</label>
+                    <input type="text" id="editThumb" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-black text-slate-900">
+                </div>
             </div>
-            
-            <p class="text-xs text-slate-600 leading-relaxed">
-                웹페이지에서 버튼 하나로 GitHub Actions를 즉시 실행하기 위해 **Personal Access Token**이 필요합니다. (최초 1회 설정)
-            </p>
 
-            <ol class="list-decimal list-inside text-xs text-slate-700 space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                <li><a href="https://github.com/settings/tokens/new" target="_blank" class="text-sky-600 font-bold underline">GitHub 토큰 발급 페이지 열기 ↗</a>에 접속합니다.</li>
-                <li><b>Note</b>에 <code class="bg-slate-200 px-1 rounded">Kitty Theater</code> 입력</li>
-                <li><b>Expiration</b>을 <code class="bg-slate-200 px-1 rounded">No expiration</code> 설정 (또는 원하는 기간)</li>
-                <li><b>Select scopes</b> 항목에서 <b class="text-emerald-700">workflow</b> 및 <b class="text-emerald-700">repo</b> 체크박스 선택</li>
-                <li>맨 아래 <b class="bg-emerald-600 text-white px-2 py-0.5 rounded">Generate token</b> 클릭 후 생성된 토큰(<code class="bg-slate-200 px-1 rounded">ghp_...</code>)을 복사하여 위 입력창에 붙여넣기 후 <b>[저장]</b> 누르기!</li>
-            </ol>
-
-            <div class="flex justify-end pt-2">
-                <button onclick="closeGithubTokenModal()" class="px-5 py-2 rounded-xl bg-black text-white font-bold text-xs hover:bg-slate-800 transition">닫기</button>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeEditModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 hover:bg-slate-200 transition">취소</button>
+                <button onclick="saveCardEdit()" class="px-5 py-2 rounded-xl bg-black text-white font-bold text-xs hover:bg-slate-800 shadow-md transition">저장하기</button>
             </div>
         </div>
     </div>
@@ -565,6 +606,7 @@
                 id: 'sample-1',
                 series: '호기심 딱지 S1',
                 title: '최고의 달걀을 찾아라!',
+                duration: '05:20',
                 driveId: '1A2b3C4d5E6f7G8h9I0j',
                 thumb: 'https://images.unsplash.com/photo-1582721478779-0ae163c05a60?w=300&auto=format&fit=crop&q=80'
             },
@@ -572,6 +614,7 @@
                 id: 'sample-2',
                 series: '호기심 딱지 S1',
                 title: '바이러스를 예방하자',
+                duration: '06:15',
                 driveId: '1B2c3D4e5F6g7H8i9J0k',
                 thumb: 'https://images.unsplash.com/photo-1584362917165-526a968579e8?w=300&auto=format&fit=crop&q=80'
             },
@@ -579,6 +622,7 @@
                 id: 'sample-3',
                 series: '넘버블럭스 S1',
                 title: 'One (숫자 1의 모험)',
+                duration: '03:40',
                 driveId: '1C2d3E4f5G6h7I8j9K0l',
                 thumb: 'https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=300&auto=format&fit=crop&q=80'
             },
@@ -586,6 +630,7 @@
                 id: 'sample-4',
                 series: '넘버블럭스 S1',
                 title: 'Another One (숫자 2의 등장)',
+                duration: '04:10',
                 driveId: '1D2e3F4g5H6i7J8k9L0m',
                 thumb: 'https://images.unsplash.com/photo-1618842676088-c4d48a6a7c9d?w=300&auto=format&fit=crop&q=80'
             }
@@ -714,13 +759,11 @@
             if (!raw) return '';
             let t = raw;
 
-            // 1. Remove bracketed patterns
             t = t.replace(/\[[^\]]*\]/g, ' ');
             t = t.replace(/\([^)]*\)/g, ' ');
             t = t.replace(/【[^】]*】/g, ' ');
             t = t.replace(/<[^>]*>/g, ' ');
 
-            // 2. Delimiter splitting
             const splitters = ['|', '::', '—', ' - '];
             for (const sp of splitters) {
                 if (t.includes(sp)) {
@@ -734,7 +777,6 @@
                 }
             }
 
-            // 3. Remove broadcast/noise terms
             const noiseList = [
                 /공식\s*(클립|영상|채널|만화)?/gi,
                 /풀버전/gi,
@@ -756,10 +798,7 @@
                 t = t.replace(pattern, ' ');
             });
 
-            // 4. Remove leading numbers/episodes
             t = t.replace(/^(\d+화|\d+\.|\d+\b)\s*/, '');
-
-            // 5. Trim punctuation & whitespace
             t = t.replace(/\s+/g, ' ').trim();
             t = t.replace(/^[-:\s\.\,]+/, '').replace(/[-:\s\.\,]+$/, '').trim();
 
@@ -789,7 +828,6 @@
         window.addEventListener('DOMContentLoaded', () => {
             document.documentElement.style.setProperty('--saypen-size', saypenSize);
             
-            // Load GitHub PAT Token
             const savedGithubToken = localStorage.getItem('github_pat_token');
             if (savedGithubToken) {
                 document.getElementById('githubPatToken').value = savedGithubToken;
@@ -816,7 +854,7 @@
             if (!viewport || !transformTarget) return;
 
             const viewportWidth = viewport.clientWidth - 16;
-            const a4PxWidth = 794; // 210mm in pixels at 96dpi
+            const a4PxWidth = 794;
 
             if (viewportWidth > 0) {
                 baseFitScale = Math.min(1.0, viewportWidth / a4PxWidth);
@@ -848,7 +886,6 @@
             const viewport = document.getElementById('zoomViewport');
             if (!viewport) return;
 
-            // Mouse drag panning
             viewport.addEventListener('mousedown', (e) => {
                 isDragging = true;
                 startX = e.clientX - panX;
@@ -870,7 +907,6 @@
                 }
             });
 
-            // Touch events (Pinch zoom & 1-finger drag)
             viewport.addEventListener('touchstart', (e) => {
                 if (e.touches.length === 1) {
                     isDragging = true;
@@ -918,7 +954,6 @@
             window.addEventListener('resize', autoFitA4);
         }
 
-        // Extract File ID or YouTube ID
         function extractDriveId(input) {
             if (!input) return '';
             input = input.trim();
@@ -939,7 +974,6 @@
             return input;
         }
 
-        // Media Input Handler
         async function handleMediaUrlInput(val) {
             const extracted = extractDriveId(val);
             const statusEl = document.getElementById('idExtractStatus');
@@ -981,7 +1015,6 @@
             }
         }
 
-        // Handle File Upload
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1006,12 +1039,12 @@
             }
         }
 
-        // Form Submit
         function handleAddCard(event) {
             event.preventDefault();
 
             const series = document.getElementById('inputSeries').value.trim();
             const rawTitle = document.getElementById('inputTitle').value.trim();
+            const duration = document.getElementById('inputDuration').value.trim();
             const rawDriveLink = document.getElementById('inputDriveLink').value.trim();
             const urlThumb = document.getElementById('inputThumbUrl').value.trim();
 
@@ -1029,6 +1062,7 @@
                 id: 'card-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
                 series,
                 title,
+                duration,
                 driveId,
                 thumb
             };
@@ -1082,6 +1116,7 @@
             document.getElementById('editCardId').value = card.id;
             document.getElementById('editSeries').value = card.series;
             document.getElementById('editTitle').value = card.title;
+            document.getElementById('editDuration').value = card.duration || '';
             document.getElementById('editDriveId').value = card.driveId;
             document.getElementById('editThumb').value = card.thumb;
 
@@ -1099,6 +1134,7 @@
 
             card.series = document.getElementById('editSeries').value.trim();
             card.title = cleanTitle(document.getElementById('editTitle').value.trim());
+            card.duration = document.getElementById('editDuration').value.trim();
             card.driveId = extractDriveId(document.getElementById('editDriveId').value.trim());
             card.thumb = document.getElementById('editThumb').value.trim() || `https://drive.google.com/thumbnail?id=${card.driveId}&sz=w500`;
 
@@ -1142,11 +1178,13 @@
                     const driveId = extractDriveId(parts[2].trim());
                     const autoDriveThumb = `https://drive.google.com/thumbnail?id=${driveId}&sz=w500`;
                     const thumb = (parts[3] && parts[3].trim()) ? parts[3].trim() : autoDriveThumb;
+                    const duration = (parts[4] && parts[4].trim()) ? parts[4].trim() : '';
 
                     cards.push({
                         id: 'card-batch-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
                         series,
                         title: cleanTitleText,
+                        duration,
                         driveId,
                         thumb
                     });
@@ -1166,95 +1204,103 @@
             }
         }
 
+        // Build QR Target URL
         function buildQrUrl(driveId) {
-            let baseUrl = document.getElementById('baseUrl').value.trim();
+            const baseUrlInput = document.getElementById('baseUrl');
+            let baseUrl = baseUrlInput ? baseUrlInput.value.trim() : 'https://qqpp124-design.github.io/kitty-theater/';
             if (!baseUrl.endsWith('/')) baseUrl += '/';
-            
-            const cc = document.getElementById('ccSelect').value;
-            let fullUrl = `${baseUrl}?d=${encodeURIComponent(driveId)}`;
-            if (cc) {
-                fullUrl += `&cc=${cc}`;
-            }
-            return fullUrl;
+            const ccSelect = document.getElementById('ccSelect');
+            const cc = ccSelect ? ccSelect.value : '';
+            let url = `${baseUrl}play.html?id=${encodeURIComponent(driveId)}`;
+            if (cc) url += `&cc=${cc}`;
+            return url;
         }
 
-        // Render Cards and A4 Layout
+        // Render All Pages & Update UI
         function renderAllPages() {
-            const a4Container = document.getElementById('a4Container');
-            const printOnlyContainer = document.getElementById('printOnlyContainer');
-            const cardManageList = document.getElementById('cardManageList');
             const cardCountBadge = document.getElementById('cardCountBadge');
-            const pageStats = document.getElementById('pageStats');
-
-            cardCountBadge.innerText = `${cards.length}장 등록됨`;
+            if (cardCountBadge) cardCountBadge.innerText = `${cards.length}장 등록됨`;
 
             // 1. Sidebar Management List
-            if (cards.length === 0) {
-                cardManageList.innerHTML = `
-                    <div class="text-center py-8 text-slate-400 text-xs">
-                        등록된 카드가 없습니다.<br>위에서 새 카드를 추가해 보세요!
-                    </div>`;
-            } else {
-                cardManageList.innerHTML = cards.map((card) => `
-                    <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs hover:border-slate-300 transition">
-                        <div class="flex items-center gap-2.5 overflow-hidden">
-                            <img src="${card.thumb}" class="w-9 h-9 rounded-xl object-cover shrink-0 border border-slate-200" onerror="this.src='https://placehold.co/100x100/f1f5f9/0f172a?text=Image'">
-                            <div class="truncate">
-                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-black text-white font-bold block w-max mb-0.5">${card.series}</span>
-                                <p class="font-semibold text-slate-800 truncate">${card.title}</p>
+            const cardManageList = document.getElementById('cardManageList');
+            if (cardManageList) {
+                if (cards.length === 0) {
+                    cardManageList.innerHTML = `
+                        <div class="text-center py-8 text-slate-400 text-xs">
+                            등록된 카드가 없습니다.<br>위에서 새 카드를 추가해 보세요!
+                        </div>`;
+                } else {
+                    cardManageList.innerHTML = cards.map((card) => `
+                        <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs hover:border-slate-300 transition">
+                            <div class="flex items-center gap-2.5 overflow-hidden">
+                                <img src="${card.thumb}" class="w-9 h-9 rounded-xl object-cover shrink-0 border border-slate-200" onerror="this.onerror=null; this.src='https://placehold.co/100x100/f1f5f9/0f172a?text=Image'">
+                                <div class="truncate">
+                                    <div class="flex items-center gap-1 mb-0.5">
+                                        <span class="text-[10px] px-1.5 py-0.2 rounded bg-black text-white font-bold block w-max">${card.series}</span>
+                                        ${card.duration ? `<span class="text-[9px] px-1 py-0.2 rounded bg-slate-200 text-slate-700 font-mono font-bold">${card.duration}</span>` : ''}
+                                    </div>
+                                    <p class="font-semibold text-slate-800 truncate">${card.title}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="openEditModal('${card.id}')" class="text-slate-400 hover:text-slate-900 p-1.5 transition" title="수정">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button onclick="deleteCard('${card.id}')" class="text-slate-400 hover:text-rose-600 p-1.5 transition" title="삭제">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
                             </div>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <button onclick="openEditModal('${card.id}')" class="text-slate-400 hover:text-slate-900 p-1.5 transition" title="수정">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button onclick="deleteCard('${card.id}')" class="text-slate-400 hover:text-rose-600 p-1.5 transition" title="삭제">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
+                    `).join('');
+                }
             }
 
-            // 2. Pagination Logic (9 Cards per A4 Page)
-            const CARDS_PER_PAGE = 9;
-            const totalPages = Math.max(1, Math.ceil(cards.length / CARDS_PER_PAGE));
-            pageStats.innerText = `총 ${cards.length}장 / ${totalPages}페이지`;
+            // 2. Render A4 Pages (3x3 grid = 9 cards per page)
+            const a4Container = document.getElementById('a4Container');
+            const printOnlyContainer = document.getElementById('printOnlyContainer');
+            const pageStats = document.getElementById('pageStats');
+
+            if (!a4Container || !printOnlyContainer) return;
 
             a4Container.innerHTML = '';
             printOnlyContainer.innerHTML = '';
 
-            for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
-                const pageCards = cards.slice(pageIdx * CARDS_PER_PAGE, (pageIdx + 1) * CARDS_PER_PAGE);
+            const pageSize = 9;
+            const totalPages = Math.max(1, Math.ceil(cards.length / pageSize));
 
-                const previewPageEl = document.createElement('div');
-                previewPageEl.className = 'a4-preview relative';
-
-                const printPageEl = document.createElement('div');
-                printPageEl.className = 'print-page';
-
-                for (let slot = 0; slot < CARDS_PER_PAGE; slot++) {
-                    const cardData = pageCards[slot];
-                    if (cardData) {
-                        const cardDom = createCardElement(cardData);
-                        previewPageEl.appendChild(cardDom.cloneNode(true));
-                        printPageEl.appendChild(cardDom);
-                    } else {
-                        const emptySlot = document.createElement('div');
-                        emptySlot.className = `yoto-card opacity-0 ${showCropMarks ? 'crop-marks' : ''}`;
-                        previewPageEl.appendChild(emptySlot.cloneNode(true));
-                        printPageEl.appendChild(emptySlot);
-                    }
-                }
-
-                a4Container.appendChild(previewPageEl);
-                printOnlyContainer.appendChild(printPageEl);
+            if (pageStats) {
+                pageStats.innerText = `총 ${totalPages}페이지 (${cards.length}장)`;
             }
 
-            setTimeout(() => {
-                generateQRCodes();
-                autoFitA4();
-            }, 50);
+            for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
+                const pageCards = cards.slice(pageIdx * pageSize, (pageIdx + 1) * pageSize);
+
+                const previewPage = document.createElement('div');
+                previewPage.className = 'a4-preview';
+
+                const printPage = document.createElement('div');
+                printPage.className = 'print-page';
+
+                pageCards.forEach(card => {
+                    const cardEl = createCardElement(card);
+                    const printCardEl = createCardElement(card);
+                    previewPage.appendChild(cardEl);
+                    printPage.appendChild(printCardEl);
+                });
+
+                for (let i = pageCards.length; i < pageSize; i++) {
+                    const emptySlot = document.createElement('div');
+                    emptySlot.className = 'w-[54mm] h-[85.6mm] border border-dashed border-slate-200 rounded-[3.5mm] opacity-30';
+                    previewPage.appendChild(emptySlot.cloneNode(true));
+                    printPage.appendChild(emptySlot);
+                }
+
+                a4Container.appendChild(previewPage);
+                printOnlyContainer.appendChild(printPage);
+            }
+
+            generateQRCodes();
+            autoFitA4();
         }
 
         // Single Card Element Builder
@@ -1270,6 +1316,7 @@
                 <div class="w-[46mm] h-[46mm] mx-auto rounded-[4mm] overflow-hidden bg-slate-100 border border-slate-200 shadow-inner shrink-0 relative">
                     <img src="${card.thumb}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id=${card.driveId}&sz=w500';">
                     <span class="absolute top-1 left-1 px-1.5 py-0.5 text-[8px] font-bold rounded bg-black text-white shadow-sm">${card.series}</span>
+                    ${card.duration ? `<span class="absolute bottom-1 right-1 px-1.5 py-0.5 text-[7.5px] font-mono font-bold rounded bg-black/80 text-white backdrop-blur-[2px] border border-white/20 shadow-sm flex items-center gap-0.5"><i class="fa-regular fa-clock text-[6.5px]"></i> ${card.duration}</span>` : ''}
                 </div>
 
                 <!-- Middle Title Block -->
