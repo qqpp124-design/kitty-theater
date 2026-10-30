@@ -15,12 +15,12 @@ jobs:
   download:
     runs-on: ubuntu-latest
     steps:
-      - name: 필수 도구 설치 (ffmpeg, rclone, yt-dlp)
+      - name: 필수 도구 설치 (ffmpeg, rclone, 최신 yt-dlp)
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg rclone
           python -m pip install --upgrade pip
-          pip install -U yt-dlp
+          pip install -U --pre "yt-dlp[default]"
 
       - name: rclone 구글 드라이브 인증 설정
         run: |
@@ -38,7 +38,7 @@ jobs:
             OUT_PATTERN="%(title)s.%(ext)s"
           fi
           
-          yt-dlp --extractor-args "youtube:player_client=android,web" \
+          yt-dlp --extractor-args "youtube:player_client=ios,mweb" \
                  -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
                  --write-thumbnail --convert-thumbnails jpg \
                  -o "$OUT_PATTERN" "$URL"
