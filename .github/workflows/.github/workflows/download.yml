@@ -1,0 +1,48 @@
+name: YouTube to Google Drive
+
+on:
+  workflow_dispatch:
+    inputs:
+      youtube_url:
+        description: '유튜브 영상 주소'
+        required: true
+      series_name:
+        description: '시리즈 이름 (선택)'
+        required: false
+        default: ''
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 필수 도구 설치 (ffmpeg, rclone, yt-dlp)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg rclone
+          python -m pip install --upgrade pip
+          pip install -U yt-dlp
+
+      - name: rclone 구글 드라이브 인증 설정
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "${{ secrets.GDRIVE_RCLONE_CONFIG }}" > ~/.config/rclone/rclone.conf
+
+      - name: 영상 및 썸네일 다운로드
+        run: |
+          URL="${{ github.event.inputs.youtube_url }}"
+          SERIES="${{ github.event.inputs.series_name }}"
+          
+          if [ -n "$SERIES" ]; then
+            OUT_PATTERN="[${SERIES}] %(title)s.%(ext)s"
+          else
+            OUT_PATTERN="%(title)s.%(ext)s"
+          fi
+          
+          yt-dlp --extractor-args "youtube:player_client=android,web" \
+                 -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
+                 --write-thumbnail --convert-thumbnails jpg \
+                 -o "$OUT_PATTERN" "$URL"
+
+      - name: 구글 드라이브 '유튜브저장' 폴더로 업로드
+        run: |
+          rclone copy . gdrive:유튜브저장 --include "*.mp4" --include "*.jpg"
